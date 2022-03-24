@@ -1,6 +1,9 @@
 #! python3
 import enum
 import logging
+from typing import Optional, Set
+
+log = logging.getLogger()
 
 LEVEL_MAP = {
   'err': logging.ERROR,
@@ -31,13 +34,74 @@ def get_link_id(a: str, b: str) -> tuple[str, str]:
   # return ''.join(sort_ids)
   return (sort_ids[0], sort_ids[1])
 
+class Node:
+  def __init__(self, vertice: str) -> None:
+    self.vertice = vertice
+    self.parent: Optional[Node] = None
+
+  def __str__(self) -> str:
+      if self.parent is not None:
+        return f'{self.vertice}->{self.parent.vertice}'
+      else:
+        return f'{self.vertice}->null'
+
+  def __repr__(self) -> str:
+      return self.__str__()
+
+  def tree(self) -> str:
+    if self.parent is None:
+      return self.vertice
+    else:
+      return f'{self.parent.tree()}->{self.vertice}'
+
+def make_set(vertice: str) -> Node:
+  return Node(vertice)
+
+def find(x: Node) -> Node:
+  if x.parent is None:
+    return x
+  else:
+    return x.parent
+
+def union(x: Node, y: Node):
+  x_root = find(x)
+  y_root = find(y)
+
+  if x_root != y_root:
+    x_root.parent = y_root
+
+def kruskal(edges: list, vertices: Set[str]):
+  l = log.getChild(kruskal.__name__)
+  nodes = {vertice:make_set(vertice) for vertice in vertices}
+  edges = [((nodes[edge[0][0]], nodes[edge[0][1]]),edge[1]) for edge in edges]
+  edges = sorted(edges, key=lambda edge: edge[1])
+
+  cost = 0
+  tree = []
+
+  l.debug(f'nodes={nodes}')
+  l.debug(f'edges={edges}')
+  for edge in edges:
+    l.debug(f'current edges: {edge}')
+    x, y = edge[0]
+    l.debug(f'x={x}, y={y}')
+    if find(x) != find(y):
+      cost += edge[1]
+      tree.append(edge)
+      union(x, y)
+
+  l.debug(tree)
+  l.debug(nodes['A'].tree())
+  return cost
+
 if __name__ == '__main__':
   args = parse_args()
   logging.basicConfig(level=LEVEL_MAP[args.log])
-  log = logging.getLogger(__name__)
+  log.setLevel(LEVEL_MAP[args.log])
   log.info(f'set log level to {args.log}')
 
-  raw_network = {}
+  edges = {}
+  vertices = set()
 
   with open(args.file) as f:
     import csv
@@ -52,6 +116,8 @@ if __name__ == '__main__':
     for (row_id, row) in enumerate(matrix):
       row_id = format_id(row_id)
 
+      vertices.add(row_id)
+
       for (col_id, weight) in enumerate(row):
         if weight == '-':
           continue
@@ -60,17 +126,18 @@ if __name__ == '__main__':
 
         link_id = get_link_id(row_id, col_id)
 
+        vertices.add(col_id)
+
         log.debug(f'{row_id} -> {col_id} = {weight}')
-        if link_id not in raw_network:
-          raw_network[link_id] = weight
+        if link_id not in edges:
+          edges[link_id] = weight
           total_weight += weight
         else:
-          assert raw_network[link_id] == weight
+          assert edges[link_id] == weight
 
 
     log.info(f'total weigth of the network is {total_weight}')
-  log.debug(f'raw_network: {raw_network}')
-  network = raw_network.items()
-  log.debug(f'network: {network}')
-  sorted_network = sorted(network, key=lambda n: n[1])
-  log.debug(f'sorted network {sorted_network}')
+  log.debug(f'edges: {edges}')
+  log.debug(f'vertices: {vertices}')
+  reduced_weight = kruskal(edges.items(), vertices)
+  log.info(f'reduce network weight: {reduced_weight}')

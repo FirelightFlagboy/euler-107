@@ -17,7 +17,7 @@ def parse_args():
 
   parser = ArgumentParser()
   parser.add_argument('file', help='file to parse the original network matrix from')
-  parser.add_argument('-l', '--log', help='set log level', choices=LEVEL_MAP.keys(), default='dbg')
+  parser.add_argument('-l', '--log', help='set log level', choices=LEVEL_MAP.keys(), default='info')
 
   return parser.parse_args()
 
@@ -95,12 +95,12 @@ def kruskal(edges: list, vertices: Set[str]):
       tree.append(edge)
       union(x, y)
     else:
-      l.info(f'drop link {edge[0][0].vertice}<->{edge[0][1].vertice}')
+      l.debug(f'drop link {edge[0][0].vertice}<->{edge[0][1].vertice}')
 
   for leaf in tree:
     edge = leaf[0]
     weight = leaf[1]
-    l.debug(f'edge: {edge[0].vertice}<->{edge[1].vertice}, weight: {weight}')
+    l.info(f'edge: {edge[0].vertice}<->{edge[1].vertice}, weight: {weight}')
   l.info(f'network cost {network_cost}')
 
 def prim(edges: list, vertices: list[str]):
@@ -148,7 +148,7 @@ def prim(edges: list, vertices: list[str]):
   for leaf in tree:
     edge = leaf[0]
     weight = leaf[1]
-    l.debug(f'edge: {edge[0]}<->{edge[1]}, weight: {weight}')
+    l.info(f'edge: {edge[0]}<->{edge[1]}, weight: {weight}')
   l.info(f'network cost {network_cost}')
 
 if __name__ == '__main__':

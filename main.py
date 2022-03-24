@@ -26,8 +26,10 @@ def format_id(id: int) -> str:
     raise ValueError(f'id {id} outside of valid id bounds (min: 0, max: {LEN_CHARSET})')
   return CHARSET[id]
 
-def get_link_id(a: str, b: str) -> str:
-  return ''.join(sorted([a, b]))
+def get_link_id(a: str, b: str) -> tuple[str, str]:
+  sort_ids = sorted([a, b])
+  # return ''.join(sort_ids)
+  return (sort_ids[0], sort_ids[1])
 
 if __name__ == '__main__':
   args = parse_args()
@@ -68,3 +70,7 @@ if __name__ == '__main__':
 
     log.info(f'total weigth of the network is {total_weight}')
   log.debug(f'raw_network: {raw_network}')
+  network = raw_network.items()
+  log.debug(f'network: {network}')
+  sorted_network = sorted(network, key=lambda n: n[1])
+  log.debug(f'sorted network {sorted_network}')

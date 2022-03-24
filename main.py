@@ -38,12 +38,13 @@ class Node:
   def __init__(self, vertice: str) -> None:
     self.vertice = vertice
     self.parent: Optional[Node] = None
+    self.rank = 0
 
   def __str__(self) -> str:
       if self.parent is not None:
-        return f'{self.vertice}->{self.parent.vertice}'
+        return f'{self.vertice}<-{self.parent.vertice}'
       else:
-        return f'{self.vertice}->null'
+        return f'{self.vertice}<-null'
 
   def __repr__(self) -> str:
       return self.__str__()
@@ -52,7 +53,7 @@ class Node:
     if self.parent is None:
       return self.vertice
     else:
-      return f'{self.parent.tree()}->{self.vertice}'
+      return f'{self.vertice}<-{self.parent.tree()}'
 
 def make_set(vertice: str) -> Node:
   return Node(vertice)
@@ -68,7 +69,12 @@ def union(x: Node, y: Node):
   y_root = find(y)
 
   if x_root != y_root:
-    x_root.parent = y_root
+    if x_root.rank < y_root.rank:
+      x_root.parent = y_root
+    else:
+      y_root.parent = x_root
+      if x_root.rank == y_root.rank:
+        x_root.rank += 1
 
 def kruskal(edges: list, vertices: Set[str]):
   l = log.getChild(kruskal.__name__)
@@ -79,19 +85,22 @@ def kruskal(edges: list, vertices: Set[str]):
   cost = 0
   tree = []
 
-  l.debug(f'nodes={nodes}')
-  l.debug(f'edges={edges}')
+  l.debug(f'len_nodes={len(nodes):2}, nodes={nodes}')
+  l.debug(f'len_edges={len(edges):2}, edges={edges}')
   for edge in edges:
-    l.debug(f'current edges: {edge}')
     x, y = edge[0]
-    l.debug(f'x={x}, y={y}')
+    l.debug(f'current edge: {x.vertice}<->{y.vertice}')
     if find(x) != find(y):
       cost += edge[1]
       tree.append(edge)
       union(x, y)
+    else:
+      l.info(f'drop link {edge[0][0].vertice}<->{edge[0][1].vertice}')
 
-  l.debug(tree)
-  l.debug(nodes['A'].tree())
+  for leaf in tree:
+    edge = leaf[0]
+    weight = leaf[1]
+    l.debug(f'edge: {edge[0].vertice}<->{edge[1].vertice}, weight: {weight}')
   return cost
 
 if __name__ == '__main__':

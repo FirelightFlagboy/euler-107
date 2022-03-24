@@ -82,7 +82,7 @@ def kruskal(edges: list, vertices: Set[str]):
   edges = [((nodes[edge[0][0]], nodes[edge[0][1]]),edge[1]) for edge in edges]
   edges = sorted(edges, key=lambda edge: edge[1])
 
-  cost = 0
+  network_cost = 0
   tree = []
 
   l.debug(f'len_nodes={len(nodes):2}, nodes={nodes}')
@@ -91,7 +91,7 @@ def kruskal(edges: list, vertices: Set[str]):
     x, y = edge[0]
     l.debug(f'current edge: {x.vertice}<->{y.vertice}')
     if find(x) != find(y):
-      cost += edge[1]
+      network_cost += edge[1]
       tree.append(edge)
       union(x, y)
     else:
@@ -101,7 +101,55 @@ def kruskal(edges: list, vertices: Set[str]):
     edge = leaf[0]
     weight = leaf[1]
     l.debug(f'edge: {edge[0].vertice}<->{edge[1].vertice}, weight: {weight}')
-  return cost
+  l.info(f'network cost {network_cost}')
+
+def prim(edges: list, vertices: list[str]):
+  import sys
+
+  l = log.getChild(prim.__name__)
+  vertices_count = len(vertices)
+  l.debug(f'vertices_count={vertices_count}, vertices={vertices}')
+  l.debug(f'edges_count={len(edges)}, edges={edges}')
+
+
+  network_cost = 0
+  tree = []
+  cost = [sys.maxsize] * vertices_count
+  parent: list[Optional[int]] = [None] * vertices_count
+
+  cost[0] = 0
+  parent[0] = -1
+
+  visited_vertices = [vertices[0]] # include one vertice to start from
+
+  def find_cheaper_edge(visited_vertices, edges) -> Optional[tuple[tuple[str, str], int]]:
+    lsub = l.getChild(find_cheaper_edge.__name__)
+    result = None
+    for edge in edges:
+      u, v = edge[0]
+      weight = edge[1]
+      if u in visited_vertices and v not in visited_vertices:
+        lsub.debug(f'potential link: {edge}, current: {result}')
+        if result is None or result[1] > weight:
+          result = edge
+
+    return result
+
+
+  for step in range(vertices_count - 1):
+    l.debug(f'step {step}, visited_vertices {visited_vertices}')
+    edge = find_cheaper_edge(visited_vertices, edges)
+    if edge is not None:
+      network_cost += edge[1]
+      visited_vertices.append(edge[0][1])
+      tree.append(edge)
+
+
+  for leaf in tree:
+    edge = leaf[0]
+    weight = leaf[1]
+    l.debug(f'edge: {edge[0]}<->{edge[1]}, weight: {weight}')
+  l.info(f'network cost {network_cost}')
 
 if __name__ == '__main__':
   args = parse_args()
@@ -118,7 +166,7 @@ if __name__ == '__main__':
     matrix = csv.reader(f)
     matrix = [list(row) for row in matrix]
 
-    log.debug('matrix: {}'.format(matrix))
+    log.debug(f'matrix_len: {len(matrix)} matrix: {matrix}')
 
     total_weight = 0
 
@@ -148,5 +196,5 @@ if __name__ == '__main__':
     log.info(f'total weigth of the network is {total_weight}')
   log.debug(f'edges: {edges}')
   log.debug(f'vertices: {vertices}')
-  reduced_weight = kruskal(edges.items(), vertices)
-  log.info(f'reduce network weight: {reduced_weight}')
+  kruskal(edges.items(), vertices)
+  prim(edges.items(), sorted(list(vertices)))

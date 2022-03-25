@@ -46,7 +46,7 @@ fn solve_file(filepath: &Path) -> anyhow::Result<()> {
         let record = result?;
         for (col, value) in record.iter().enumerate() {
             if value != "-" {
-                let weight = usize::from_str_radix(value, 10)?;
+                let weight = value.parse()?;
                 let edge = Edge::new(row, col, weight);
                 initial_network.insert_edge(edge)
             }

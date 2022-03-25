@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet, fmt::Display};
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash, Ord)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct VerticeId {
     pub name: String,
     pub id: usize,
@@ -39,11 +39,17 @@ impl Display for VerticeId {
 
 impl PartialOrd for VerticeId {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.id.cmp(&other.id))
+        Some(self.cmp(other))
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Ord)]
+impl Ord for VerticeId {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.id.cmp(&other.id)
+    }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Edge {
     pub u: VerticeId,
     pub v: VerticeId,
@@ -80,7 +86,7 @@ pub trait Solver {
     fn solve(network: Network) -> Network;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Network(Vec<Edge>);
 
 impl Network {
@@ -112,10 +118,10 @@ impl Network {
             .for_each(|(i, edge)| println!("{}: {}", i, edge))
     }
 
-    /// Return the edge in the network sorted
+    /// Return the edge in the network sorted by weight
     pub fn edges_sorted(&self) -> Vec<Edge> {
         let mut edges = self.edges();
-        edges.sort();
+        edges.sort_by(|a, b| a.weight.cmp(&b.weight));
         edges
     }
 
@@ -147,12 +153,6 @@ impl Network {
         });
 
         set
-    }
-}
-
-impl Default for Network {
-    fn default() -> Self {
-        Self(Vec::default())
     }
 }
 

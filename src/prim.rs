@@ -31,12 +31,8 @@ impl Prim {
 impl Solver for Prim {
     fn solve(network: Network) -> Network {
         let mut tree = Network::default();
-        let vertices = {
-            let mut v = network.vertices();
-            v.sort();
-            v
-        };
-        let edges = network.edges();
+        let vertices = network.vertices_sorted();
+        let edges = network.edges_sorted();
         let mut visisted_vertices = {
             let mut set = HashSet::default();
             set.insert(vertices[0].clone());

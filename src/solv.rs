@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
+use std::{cmp::Ordering, collections::HashSet, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Ord)]
 pub struct VerticeId {
@@ -37,13 +37,13 @@ impl Display for VerticeId {
     }
 }
 
-impl std::cmp::PartialOrd for VerticeId {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl PartialOrd for VerticeId {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.id.cmp(&other.id))
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Ord)]
 pub struct Edge {
     pub u: VerticeId,
     pub v: VerticeId,
@@ -70,6 +70,12 @@ impl Display for Edge {
     }
 }
 
+impl PartialOrd for Edge {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.weight.cmp(&other.weight))
+    }
+}
+
 pub trait Solver {
     fn solve(network: Network) -> Network;
 }
@@ -78,11 +84,6 @@ pub trait Solver {
 pub struct Network(Vec<Edge>);
 
 impl Network {
-    /// Create a new network with the given edges
-    pub fn new(edges: Vec<Edge>) -> Self {
-        Network(edges)
-    }
-
     pub fn insert_edge(&mut self, edge: Edge) {
         self.0.push(edge)
     }
@@ -111,9 +112,23 @@ impl Network {
             .for_each(|(i, edge)| println!("{}: {}", i, edge))
     }
 
+    /// Return the edge in the network sorted
+    pub fn edges_sorted(&self) -> Vec<Edge> {
+        let mut edges = self.edges();
+        edges.sort();
+        edges
+    }
+
     /// Return the edge in the network
     pub fn edges(&self) -> Vec<Edge> {
         self.0.clone()
+    }
+
+    /// Return the vertices contained in the network sorted
+    pub fn vertices_sorted(&self) -> Vec<VerticeId> {
+        let mut vertices = self.vertices();
+        vertices.sort();
+        vertices
     }
 
     /// Return the vertices contained in the network

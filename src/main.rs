@@ -1,3 +1,4 @@
+mod kruskal;
 mod prim;
 mod solv;
 
@@ -8,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 use prim::Prim;
 
-use crate::solv::Solver;
+use crate::{kruskal::Kruskal, solv::Solver};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -55,6 +56,12 @@ fn solve_file(filepath: &Path) -> anyhow::Result<()> {
 
     println!("initial network:");
     describe_network(&initial_network);
+
+    {
+        let kruskal_network = Kruskal::solve(initial_network.clone());
+        println!("kruskal network:");
+        describe_network(&kruskal_network);
+    }
 
     {
         let prim_network = Prim::solve(initial_network.clone());

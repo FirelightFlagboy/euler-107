@@ -16,10 +16,10 @@ class Node:
         if self.parent is not None:
             return f'{self.vertice}<-{self.parent.vertice}'
         else:
-            return f'{self.vertice}<-null'
+            return f'{self.vertice}<-.'
 
     def __repr__(self) -> str:
-        return self.__str__()
+        return str(self.vertice)
 
 
 class KruskalEdge:
@@ -29,16 +29,20 @@ class KruskalEdge:
         self.v = v
         self.cost = edge.cost
 
+    def __str__(self) -> str:
+        return f'{self.u!r}<-{self.cost}->{self.v!r}'
+
 
 def make_set(vertice: Vertice) -> Node:
     return Node(vertice)
 
 
 def find(x: Node) -> Node:
-    if x.parent is None:
-        return x
-    else:
+    if x.parent is not None:
+        x.parent = find(x.parent)
         return x.parent
+    else:
+        return x
 
 
 def union(x: Node, y: Node):
@@ -62,10 +66,14 @@ def solve(network: Network) -> Network:
 
     tree = Network()
 
+    def repr_nodes(nodes: dict[Node]) -> str:
+        return ', '.join([str(v) for v in nodes.values()])
+
     log.debug(f'len_nodes={len(nodes):2}, nodes={nodes}')
-    log.debug(f'len_edges={len(edges):2}, edges={edges}')
+    log.debug(f'len_edges={len(edges):2}, edges={edges!r}')
     for edge in edges:
-        log.debug(f'current edge: {edge.u.vertice}<->{edge.v.vertice}')
+        log.debug(f'current edge: {edge}')
+        log.debug(f'nodes: {repr_nodes(nodes)}')
         if find(edge.u) != find(edge.v):
             tree.insert_edge(edge.raw_edge)
             union(edge.u, edge.v)

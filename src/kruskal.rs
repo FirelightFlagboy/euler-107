@@ -87,10 +87,10 @@ impl Node {
 }
 
 fn find(x: &WrappedNode) -> WrappedNode {
-    x.borrow()
-        .parent
-        .as_ref()
-        .map_or_else(|| x.clone(), |parent| parent.clone())
+    x.borrow_mut().parent.as_mut().map_or_else(||x.clone(), |parent| {
+        *parent = find(parent);
+        parent.clone()
+    })
 }
 
 fn make_set(vertice: VerticeId) -> WrappedNode {
